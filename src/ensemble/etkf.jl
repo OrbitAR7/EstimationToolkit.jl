@@ -191,7 +191,7 @@ function update!(
     n_ens = etkf.ensemble_size
     
     # Compute ensemble mean (prior)
-    x̄⁻ = vec(mean(etkf.ensemble, dims=2))
+    x̄⁻ = vec(Statistics.mean(etkf.ensemble, dims=2))
     
     # Predicted measurements for each ensemble member
     H_ensemble = Matrix{T}(undef, n_y, n_ens)
@@ -202,7 +202,7 @@ function update!(
     end
     
     # Ensemble mean of measurements
-    ȳ⁻ = vec(mean(H_ensemble, dims=2))
+    ȳ⁻ = vec(Statistics.mean(H_ensemble, dims=2))
     
     # Innovation
     ν = y - ȳ⁻
@@ -281,7 +281,7 @@ end
 Return the ensemble mean as the state estimate.
 """
 function state_estimate(etkf::EnsembleTransformKalmanFilter{T, N}) where {T<:Real, N}
-    x̄ = vec(mean(etkf.ensemble, dims=2))
+    x̄ = vec(Statistics.mean(etkf.ensemble, dims=2))
     return SVector{N, T}(x̄)
 end
 
@@ -291,7 +291,7 @@ end
 Compute the ensemble covariance matrix.
 """
 function covariance(etkf::EnsembleTransformKalmanFilter{T, N}) where {T<:Real, N}
-    x̄ = vec(mean(etkf.ensemble, dims=2))
+    x̄ = vec(Statistics.mean(etkf.ensemble, dims=2))
     X_anom = etkf.ensemble .- x̄
     
     P = (X_anom * X_anom') / (etkf.ensemble_size - 1)
@@ -309,7 +309,7 @@ Apply multiplicative covariance inflation.
 """
 function apply_inflation!(etkf::EnsembleTransformKalmanFilter{T, N}) where {T<:Real, N}
     if etkf.inflation_factor > 1.0
-        x̄ = vec(mean(etkf.ensemble, dims=2))
+        x̄ = vec(Statistics.mean(etkf.ensemble, dims=2))
         for i in 1:etkf.ensemble_size
             etkf.ensemble[:, i] = x̄ + etkf.inflation_factor * (etkf.ensemble[:, i] - x̄)
         end
