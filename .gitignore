@@ -1,0 +1,61 @@
+# Julia package files
+Manifest.toml
+
+# Build artifacts
+*.ji
+*.o
+*.so
+*.dylib
+*.dll
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+
+# Temporary files
+*.log
+*.tmp
+
+# Test artifacts
+coverage/
+*.cov
+
+# Documentation build
+docs/build/
+docs/site/
+
+# Workspace files (ignore all VSCode workspace files)
+*.code-workspace
+
+# Development status files (not for release)
+CURRENT_STATUS.md
+PROGRESS.md
+TEST_SUMMARY.md
+IMPLEMENTATION_SUMMARY.md
+GETTING_STARTED.md
+FINAL_STATUS.md
+GITHUB_UPLOAD_CHECKLIST.md
+EstimationToolkit_Comprehensive.md
+README_EstimationToolkit.md
+
+# Course materials (keep for reference but don't upload)
+doc/
+
+# Backup files
+*.bak
+*.backup
