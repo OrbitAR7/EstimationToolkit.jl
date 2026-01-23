@@ -205,7 +205,7 @@ function update!(
     n_ens = enkf.ensemble_size
     
     # Compute ensemble mean (prior)
-    x̄⁻ = vec(mean(enkf.ensemble, dims=2))
+    x̄⁻ = vec(Statistics.mean(enkf.ensemble, dims=2))
     
     # Predicted measurements for each ensemble member
     H_ensemble = Matrix{T}(undef, n_y, n_ens)
@@ -216,7 +216,7 @@ function update!(
     end
     
     # Ensemble mean of measurements
-    ȳ⁻ = vec(mean(H_ensemble, dims=2))
+    ȳ⁻ = vec(Statistics.mean(H_ensemble, dims=2))
     
     # Innovation
     ν = y - ȳ⁻
@@ -291,7 +291,7 @@ end
 Return the ensemble mean as the state estimate.
 """
 function state_estimate(enkf::EnsembleKalmanFilter{T, N}) where {T<:Real, N}
-    x̄ = vec(mean(enkf.ensemble, dims=2))
+    x̄ = vec(Statistics.mean(enkf.ensemble, dims=2))
     return SVector{N, T}(x̄)
 end
 
@@ -305,7 +305,7 @@ P = (1/(N-1)) ∑ᵢ (xⁱ - x̄)(xⁱ - x̄)ᵀ
 ```
 """
 function covariance(enkf::EnsembleKalmanFilter{T, N}) where {T<:Real, N}
-    x̄ = vec(mean(enkf.ensemble, dims=2))
+    x̄ = vec(Statistics.mean(enkf.ensemble, dims=2))
     X_anom = enkf.ensemble .- x̄
     
     P = (X_anom * X_anom') / (enkf.ensemble_size - 1)
@@ -334,7 +334,7 @@ xⁱ = xⁱ + ηⁱ,  ηⁱ ~ N(0, Q_add)
 function apply_inflation!(enkf::EnsembleKalmanFilter{T, N}) where {T<:Real, N}
     # Multiplicative inflation
     if enkf.inflation_factor > 1.0
-        x̄ = vec(mean(enkf.ensemble, dims=2))
+        x̄ = vec(Statistics.mean(enkf.ensemble, dims=2))
         for i in 1:enkf.ensemble_size
             enkf.ensemble[:, i] = x̄ + enkf.inflation_factor * (enkf.ensemble[:, i] - x̄)
         end
@@ -402,3 +402,4 @@ end
 Return the ensemble size.
 """
 num_ensemble(enkf::EnsembleKalmanFilter) = enkf.ensemble_size
+
