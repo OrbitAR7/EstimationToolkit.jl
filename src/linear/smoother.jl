@@ -32,7 +32,7 @@ Pₖ|ₙ = Pₖ|ₖ + Cₖ(Pₖ₊₁|ₙ - Pₖ₊₁|ₖ)Cₖᵀ
 ```
 
 # Reference
-- EstimationNotes.pdf Ch. 12 (Fixed-Interval Smoothing)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), Ch. 12
 - Rauch, Tung, and Striebel (1965)
 - Anderson & Moore (1979) - Optimal Filtering
 

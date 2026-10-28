@@ -50,7 +50,7 @@ IMM Algorithm (four steps per cycle):
 - Better than hard decisions or model selection
 
 # Reference
-- EstimationNotes.pdf §14.2.1 (IMM Algorithm)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §14.2.1
 - Blom & Bar-Shalom (1988)
 - Bar-Shalom et al. (2001) - "Estimation with Applications to Tracking"
 

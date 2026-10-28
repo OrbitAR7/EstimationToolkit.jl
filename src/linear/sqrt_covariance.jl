@@ -21,7 +21,7 @@ The filter propagates the square-root factor S instead of P:
 4. **No symmetrization needed**: S·S' is automatically symmetric
 
 **Reference**: Kaminski, Bryson, & Schmidt (1971), "Discrete square root filtering"
-**Lecture Source**: EstimationNotes Ch. 11, 04-linear_filters.pdf §7
+**Reference**: G. J. Bierman, Factorization Methods for Discrete Sequential Estimation, Academic Press, 1977
 
 # Fields
 - `x::SVector{N,T}` - State estimate

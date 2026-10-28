@@ -28,8 +28,8 @@ using Gauss-Newton iterations.
 - `num_iterations::Int`: Number of iterations used in last update
 
 # References
-- EstimationNotes.pdf, Chapter 13, §13.4.1 "Iterated Extended Kalman Filter"
-- 03-Nonlinear_filters.pdf, §2.1.1
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §13.4.1
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §2
 - Bell, B.M., and Cathey, F.W. (1993). "The iterated Kalman filter update as a
   Gauss-Newton method", IEEE Trans. Automatic Control
 

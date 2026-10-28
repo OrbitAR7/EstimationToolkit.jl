@@ -41,8 +41,8 @@ where the Kalman gain is computed from ensemble statistics.
 - May need localization for high-dimensional problems
 
 # References
-- 04-linear_filters.pdf
-- Lecture24-EnKF.pdf
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §4
+- A. A. Popov and R. Zanetti, "The Ensemble Kalman Filter," ASE 381P.7 lecture slides (UT Austin, 2023)
 - Evensen (2003), "The Ensemble Kalman Filter: theoretical formulation and practical implementation"
 - Burgers et al. (1998), "Analysis scheme in the ensemble Kalman filter"
 """

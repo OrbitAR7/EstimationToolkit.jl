@@ -38,7 +38,7 @@ At each step:
 - Gaussian assumption may be restrictive
 
 # Reference
-- 03-Nonlinear_filters.pdf §5.3 (Gaussian Particle Filter)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.3
 - Kotecha & Djuric (2003)
 
 # Fields

@@ -36,7 +36,7 @@ where L(y|x) is the measurement likelihood.
 - Fixed grid may miss important regions
 
 # Reference
-- 03-Nonlinear_filters.pdf §4 (Grid-Based Filters)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), Ch. 4
 - Bucy & Senne (1971)
 - Sorenson & Alspach (1971)
 

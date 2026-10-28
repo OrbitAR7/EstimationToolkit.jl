@@ -32,7 +32,7 @@ information into the proposal. The auxiliary variable approach enables efficient
 sampling from this improved proposal.
 
 **Reference**: Pitt & Shephard (1999), "Filtering via simulation: Auxiliary particle filters"
-**Lecture Source**: 03-Nonlinear_filters.pdf §5.2
+**Reference**: R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.2
 
 # Fields
 - `particles::Vector{SVector{N,T}}` - Current particle states

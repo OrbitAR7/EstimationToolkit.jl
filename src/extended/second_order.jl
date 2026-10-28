@@ -26,7 +26,7 @@ P̄ ≈ F·P·F' + Q + 0.5·Tr(H·P·H'·P)
 ```
 
 **Reference**: Anderson & Moore (1979), "Optimal Filtering"
-**Lecture Source**: Lecture23-OtherKF.pdf, EstimationNotes §13.5
+**References**: R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §2; R. Zanetti, "Other Kalman Filters," ASE 381P.7 lecture slides (UT Austin, 2023)
 
 # Fields
 - `x::SVector{N,T}` - State estimate

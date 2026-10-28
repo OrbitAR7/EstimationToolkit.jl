@@ -21,8 +21,8 @@ Linearization:
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update
 
 # References
-- EstimationNotes.pdf, Chapter 13
-- 03-Nonlinear_filters.pdf, Section 2.1
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §13.3
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §2
 """
 mutable struct ExtendedKalmanFilter{T<:Real, N} <: AbstractFilter
     x::SVector{N, T}

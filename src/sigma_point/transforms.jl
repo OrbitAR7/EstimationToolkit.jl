@@ -35,7 +35,7 @@ the mean and covariance of a Gaussian distribution.
 A `SigmaPoints` object containing 2n+1 sigma points and weights.
 
 # References
-- EstimationNotes.pdf, Chapter 15
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), Ch. 15
 - Julier & Uhlmann (2004)
 """
 function unscented_transform(μ::SVector{N, T}, Σ::SMatrix{N, N, T}; 
@@ -131,7 +131,7 @@ placed symmetrically about the mean.
 A `SigmaPoints` object containing 2n sigma points with equal weights.
 
 # References
-- Lecture22-QKF.pdf
+- R. Zanetti, "Quadrature Kalman Filter," ASE 381P.7 lecture slides (UT Austin, 2023)
 - Arasaratnam & Haykin (2009)
 """
 function cubature_transform(μ::SVector{N, T}, Σ::SMatrix{N, N, T}) where {N, T<:Real}

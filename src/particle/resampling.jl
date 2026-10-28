@@ -17,7 +17,7 @@ reduces sampling variance compared to multinomial resampling.
 Vector of indices into the original particle array.
 
 # References
-- 03-Nonlinear_filters.pdf, Section 5
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), Ch. 5
 - Arulampalam et al. (2002)
 """
 function systematic_resample(weights::AbstractVector{T}, N=length(weights);

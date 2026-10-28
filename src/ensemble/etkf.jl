@@ -41,7 +41,7 @@ requiring perturbed observations.
 - Transform computation can be expensive for large N_y
 
 # References
-- 04-linear_filters.pdf
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §4
 - Bishop et al. (2001), "Adaptive sampling with the ensemble transform Kalman filter"
 - Hunt et al. (2007), "Efficient data assimilation for spatiotemporal chaos"
 """

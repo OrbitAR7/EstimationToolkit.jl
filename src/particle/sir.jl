@@ -32,8 +32,8 @@ Common proposals:
 - `rng::AbstractRNG`: Random number generator
 
 # References
-- Lecture16-PF.pdf "Particle Filtering"
-- 03-Nonlinear_filters.pdf, Section 5
+- R. Zanetti, "Sequential Importance Sampling," ASE 381P.7 lecture slides (UT Austin, 2023)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), Ch. 5
 - Arulampalam et al. (2002). "A Tutorial on Particle Filters"
 - Doucet & Johansen (2009). "A Tutorial on Particle Filtering and Smoothing"
 

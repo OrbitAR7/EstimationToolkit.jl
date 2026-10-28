@@ -23,7 +23,7 @@ where χᵢ are Gauss-Hermite quadrature points scaled to match the Gaussian dis
 - Exponential growth in points with dimension (curse of dimensionality)
 
 **Reference**: Ito & Xiong (2000), "Gaussian filters for nonlinear filtering problems"
-**Lecture Source**: Lecture22-QKF.pdf, EstimationNotes Ch. 15
+**References**: R. Zanetti, "Quadrature Kalman Filter," ASE 381P.7 lecture slides (UT Austin, 2023); R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §3
 
 # Fields
 - `x::SVector{N,T}` - State estimate

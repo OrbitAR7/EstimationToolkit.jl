@@ -32,7 +32,7 @@ Using square-root form with QR factorization for numerical stability.
 - Twice the numerical precision effectively
 
 # Reference
-- EstimationNotes.pdf Ch. 11-12 (SRIF and Smoothing)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §11.2 (SRIF) and Ch. 12 (SRIS)
 - Bierman (1977) - "Factorization Methods for Discrete Sequential Estimation"
 
 # Fields

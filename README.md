@@ -4,7 +4,7 @@
 
 Julia implementations of state estimation filters (Kalman and its square-root/information forms, EKF variants, sigma-point, ensemble, Gaussian-mixture, particle, multiple-model and grid-based filters) behind one `predict!`/`update!` interface, so they can be run side by side on the same problem.
 
-I wrote this after my graduate estimation and orbit determination courses at UT Austin. I wanted one codebase where I could swap filters on the same dynamics and measurement model and see where each one breaks, especially on nonlinear and non-Gaussian problems like the ones in orbit determination. It's a research/learning codebase (v0.9), not flight software.
+I wrote this after my graduate estimation courses at UT Austin (ASE 381P.6 Statistical Estimation Theory and ASE 381P.7 Advanced Topics in Estimation Theory). I wanted one codebase where I could swap filters on the same dynamics and measurement model and see where each one breaks, especially on nonlinear and non-Gaussian problems like the ones in orbit determination. It's a research/learning codebase (v0.9), not flight software.
 
 If you just need a fast, well-maintained KF/EKF/UKF/particle filter (or IMM), use [LowLevelParticleFilters.jl](https://github.com/baggepinnen/LowLevelParticleFilters.jl). What this package adds is the less common filters in one place with the same interface: GPB1/GPB2 and static multiple-model, particle flow (Daum-Huang, Gromov), the cubature/quadrature/divided-difference sigma-point filters, information-form filters and smoother, Gaussian sum, and point-mass grid filters.
 
@@ -148,6 +148,10 @@ Small states use StaticArrays. Covariance updates use stable forms where it matt
 
 ## References
 
+Most filters follow the course notes below, cited by chapter or section in each docstring. They're unpublished, so the textbook and paper references after them are the public sources for the same algorithms.
+
+- T. Humphreys, *Statistical Estimation Theory* course notes, ASE 381P.6, The University of Texas at Austin, 2023.
+- R. Zanetti, *Advanced Topics in Estimation Theory* class notes, Part 3 (Nonlinear Estimation of Nonlinear Systems) and Part 4 (Linear Filters), and lecture slides, ASE 381P.7, The University of Texas at Austin, Fall 2023. The ensemble Kalman filter slides are by A. A. Popov and R. Zanetti.
 - Bar-Shalom, Li & Kirubarajan (2001), *Estimation with Applications to Tracking and Navigation*, Wiley.
 - Simon (2006), *Optimal State Estimation: Kalman, H∞, and Nonlinear Approaches*, Wiley.
 - Särkkä (2013), *Bayesian Filtering and Smoothing*, Cambridge University Press.

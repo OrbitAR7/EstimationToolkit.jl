@@ -23,8 +23,7 @@ The filter equations are:
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update (diagnostic)
 
 # References
-- EstimationNotes.pdf, Chapter 11
-- 04-linear_filters.pdf, §5
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §11.1
 - Optimal State Estimation (Simon 2006), Ch. 7
 
 # Notes

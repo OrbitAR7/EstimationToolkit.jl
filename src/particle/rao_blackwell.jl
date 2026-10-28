@@ -44,7 +44,7 @@ Algorithm:
 - Orbit determination with linear dynamics
 
 # Reference
-- 03-Nonlinear_filters.pdf §5.8 (Rao-Blackwellization)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.8
 - Doucet et al. (2000)
 - Schön et al. (2005)
 

@@ -24,7 +24,7 @@ For Gaussian approximations:
 - **UPF**: Use UKF to approximate optimal proposal
 
 # Reference
-- 03-Nonlinear_filters.pdf §5.6 (Optimal Importance Density)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.6-5.7
 - Doucet et al. (2001)
 """
 
@@ -234,7 +234,7 @@ Uses EKF to construct a better proposal distribution that incorporates
 measurement information, reducing particle degeneracy.
 
 # Reference
-- 03-Nonlinear_filters.pdf §5.6
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.6
 """
 mutable struct ExtendedKalmanParticleFilter{T<:Real, N} <: AbstractFilter
     particles::Vector{SVector{N, T}}

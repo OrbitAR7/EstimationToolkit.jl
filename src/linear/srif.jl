@@ -23,8 +23,8 @@ the information matrix remains well-conditioned even in poorly observable system
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update (diagnostic)
 
 # References
-- EstimationNotes.pdf, Chapter 11, §11.3 "Square-Root Information Filtering"
-- 04-linear_filters.pdf, §6
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §11.2
+- G. J. Bierman, Factorization Methods for Discrete Sequential Estimation, Academic Press, 1977
 - Bierman, G.J. (1977). "Factorization Methods for Discrete Sequential Estimation"
 - Kaminski, P.G., Bryson, A.E., and Schmidt, S.F. (1971). "Discrete Square Root Filtering"
 

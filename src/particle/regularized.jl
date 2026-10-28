@@ -37,7 +37,7 @@ H = A·Σ̂·n^(-2/(d+4))  where A = (4/(d+2))^(2/(d+4))
 ```
 
 **Reference**: Musso, Oudjane, & Le Gland (2001), "Improving Regularized Particle Filters"
-**Lecture Source**: 03-Nonlinear_filters.pdf §5.4
+**Reference**: R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.4
 
 # Fields
 - `particles::Vector{SVector{N,T}}` - Current particle states

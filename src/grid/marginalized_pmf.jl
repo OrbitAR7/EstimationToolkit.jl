@@ -38,7 +38,7 @@ x̂ = [∑ᵢ pᵢ x̂ₗ⁽ⁱ⁾, ∑ᵢ pᵢ xₙ⁽ⁱ⁾]
 - Still limited by nonlinear substate dimension
 
 # Reference
-- 03-Nonlinear_filters.pdf §4.3 (Marginalized PMF)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §4.3
 - Šimandl et al. (2006)
 
 # Fields

@@ -22,7 +22,7 @@ f(x) ≈ f(x₀) + Σᵢ [f(x₀ + hᵢ) - f(x₀ - hᵢ)]/(2hᵢ) · (x - x₀)
 - Computationally efficient (fewer points than UKF)
 
 **Reference**: Norgaard et al. (2000), "New developments in state estimation for nonlinear systems"
-**Lecture Source**: Lecture23-OtherKF.pdf
+**References**: R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §3; R. Zanetti, "Other Kalman Filters," ASE 381P.7 lecture slides (UT Austin, 2023)
 
 # Fields
 - `x::SVector{N,T}` - State estimate

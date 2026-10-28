@@ -34,7 +34,7 @@ This can be more efficient than computing the full joint and then marginalizing.
 - Not suitable when full state estimate is needed
 
 # Reference
-- 03-Nonlinear_filters.pdf §5.9 (Marginal Particle Filter)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.9
 - Klaas et al. (2005)
 
 # Fields

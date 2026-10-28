@@ -40,7 +40,7 @@ p_i < θ_coarsen * max(p)
 - Still limited by dimensionality
 
 # Reference
-- 03-Nonlinear_filters.pdf §4.1 (Adaptive Grid)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §4.1
 - Šimandl & Duník (2009)
 
 # Fields

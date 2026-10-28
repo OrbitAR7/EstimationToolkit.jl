@@ -20,8 +20,8 @@ System model:
 - `rng::AbstractRNG`: Random number generator
 
 # References
-- 03-Nonlinear_filters.pdf, Section 5.1
-- Lecture16-PF.pdf
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §5.1
+- R. Zanetti, "Sequential Importance Sampling," ASE 381P.7 lecture slides (UT Austin, 2023)
 - Gordon, Salmond & Smith (1993)
 """
 mutable struct BootstrapParticleFilter{T<:Real, N} <: AbstractFilter

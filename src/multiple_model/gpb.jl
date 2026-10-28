@@ -35,7 +35,7 @@ GPB2 (M² filters per step):
 The IMM has the cost of GPB1 and accuracy close to GPB2.
 
 # Reference
-- EstimationNotes.pdf §14.2.1 (GPB Algorithms)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §14.2
 - Ackerson & Fu (1970)
 - Blom (1984)
 - Bar-Shalom & Li (1993)

@@ -34,11 +34,11 @@ efficiency.
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update
 
 # References
-- Lecture22-QKF.pdf "Cubature Kalman Filters"
-- Lecture23-OtherKF.pdf
+- R. Zanetti, "Quadrature Kalman Filter," ASE 381P.7 lecture slides (UT Austin, 2023)
+- R. Zanetti, "Other Kalman Filters," ASE 381P.7 lecture slides (UT Austin, 2023)
 - Arasaratnam, I., & Haykin, S. (2009). "Cubature Kalman Filters",
   IEEE Transactions on Automatic Control
-- EstimationNotes.pdf, Ch. 15 (comparison with UKF)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), Ch. 15 (UKF, for comparison)
 
 # Comparison with UKF
 - CKF: 2n points, no tuning, 3rd order accuracy

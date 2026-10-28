@@ -17,7 +17,7 @@ achieves better accuracy than the EKF for highly nonlinear systems.
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update
 
 # References
-- EstimationNotes.pdf, Chapter 15
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), Ch. 15
 - Julier & Uhlmann, "Unscented Filtering and Nonlinear Estimation"
 """
 mutable struct UnscentedKalmanFilter{T<:Real, N} <: AbstractFilter

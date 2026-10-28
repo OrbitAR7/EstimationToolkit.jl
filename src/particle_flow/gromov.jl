@@ -35,7 +35,7 @@ prior (λ=0) to posterior (λ=1).
 - Research-level method (less mature than SIS/SIR)
 
 # Reference
-- 03-Nonlinear_filters.pdf §6.1 (Particle Flow)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §6.1 (Gromov flow)
 - Lecture18-PFF (Particle Flow Filters)
 - Daum & Huang (2003, 2008)
 - Reich (2013) - "A dynamical systems framework for intermittent data assimilation"
@@ -278,7 +278,7 @@ log-homotopy to flow particles from prior to posterior without
 stochastic terms.
 
 # Reference
-- 03-Nonlinear_filters.pdf §6.2
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §6.2 (Daum-Huang exact flow)
 - Daum & Huang (2009, 2010)
 - "Exact particle flow for nonlinear filters"
 

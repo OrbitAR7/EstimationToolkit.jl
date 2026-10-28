@@ -34,9 +34,8 @@ wᵢ⁽ᵏ⁾ = wᵢ⁽ᵏ⁻¹⁾ · p(y_k | component i) / normalization
 - Assumes Gaussian mixture is adequate representation
 
 # References
-- EstimationNotes Ch. 14
-- 03-Nonlinear_filters.pdf §7
-- Lecture15-GSF.pdf
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 3: Nonlinear Estimation (UT Austin ASE 381P.7, 2023), §7
+- R. Zanetti, "Gaussian Sum Filter," ASE 381P.7 lecture slides (UT Austin, 2023)
 - Alspach & Sorenson (1972), "Nonlinear Bayesian estimation using Gaussian sum approximations"
 """
 mutable struct GaussianSumFilter{T<:Real, N} <: AbstractFilter

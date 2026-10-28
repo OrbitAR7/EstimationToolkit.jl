@@ -39,7 +39,7 @@ where 𝐓 is computed to satisfy:
 - Better for small ensembles
 
 # Reference
-- 04-linear_filters.pdf (Ensemble Methods)
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §4
 - Whitaker & Hamill (2002)
 - Tippett et al. (2003)
 - Evensen (2009) - "Data Assimilation: The Ensemble Kalman Filter"

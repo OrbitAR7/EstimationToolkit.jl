@@ -39,7 +39,7 @@ P(k) = ∑ⱼ μⱼ(k)[Pⱼ(k) + (x̂ⱼ(k) - x̂(k))(x̂ⱼ(k) - x̂(k))']
 ```
 
 # Reference
-- EstimationNotes.pdf Ch. 14 (Multiple Model Estimation)
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), §14.1
 - Bar-Shalom et al. (2001) - Estimation with Applications to Tracking
 
 # Fields

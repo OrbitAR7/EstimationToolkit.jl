@@ -14,8 +14,8 @@ The Kalman filter is the optimal MMSE estimator for systems of the form:
 - `S::Union{Nothing, SMatrix}`: Innovation covariance from last update
 
 # References
-- EstimationNotes.pdf, Chapter 9
-- 04-linear_filters.pdf
+- T. Humphreys, Statistical Estimation Theory course notes (UT Austin ASE 381P.6, 2023), Ch. 9
+- R. Zanetti, Advanced Topics in Estimation Theory class notes, Part 4: Linear Filters (UT Austin ASE 381P.7, 2023), §1
 """
 mutable struct KalmanFilter{T<:Real, N} <: AbstractFilter
     x::SVector{N, T}
