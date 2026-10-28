@@ -8,7 +8,7 @@ Install the package from GitHub:
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/yourusername/EstimationToolkit.jl")
+Pkg.add(url="https://github.com/OrbitAR7/EstimationToolkit.jl")
 ```
 
 ## Basic Concepts

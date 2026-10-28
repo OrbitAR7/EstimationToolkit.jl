@@ -5,7 +5,7 @@ makedocs(
     sitename = "EstimationToolkit.jl",
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
-        canonical = "https://yourusername.github.io/EstimationToolkit.jl",
+        canonical = "https://orbitar7.github.io/EstimationToolkit.jl",
         assets = String[],
     ),
     modules = [EstimationToolkit],
@@ -27,6 +27,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/yourusername/EstimationToolkit.jl.git",
+    repo = "github.com/OrbitAR7/EstimationToolkit.jl.git",
     devbranch = "main",
 )

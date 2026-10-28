@@ -59,7 +59,7 @@ end
 """
     run_benchmarks(; n_steps=1000, verbose=true)
 
-Run comprehensive benchmark suite.
+Run the benchmark suite.
 """
 function run_benchmarks(; n_steps=1000, verbose=true)
     Random.seed!(42)

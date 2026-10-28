@@ -4,19 +4,11 @@
 CurrentModule = EstimationToolkit
 ```
 
-Welcome to the documentation for **EstimationToolkit.jl** — a comprehensive Julia package for state estimation and filtering.
+Documentation for **EstimationToolkit.jl**, a Julia package of state estimation filters that share one `predict!`/`update!` interface.
 
 ## Overview
 
-EstimationToolkit.jl provides production-ready implementations of 35+ estimation algorithms, from classical Kalman filters to advanced particle methods. Built for aerospace applications but applicable across robotics, navigation, and signal processing domains.
-
-## Key Features
-
-- **Comprehensive coverage** — Complete estimation algorithm taxonomy
-- **Production quality** — Numerically stable, extensively tested
-- **Type safety** — Compile-time dimension checking
-- **Performance** — Efficient StaticArrays-based implementations
-- **Clear documentation** — Every filter includes mathematical foundations
+The package has 36 filters (34 stable, 2 experimental) and 2 smoothers: Kalman-family, extended, sigma-point, ensemble, Gaussian-mixture, particle, particle-flow, multiple-model and grid-based. It's a research and teaching codebase (v0.9). Small states use StaticArrays, and model dimensions are type parameters, so mismatched models fail early.
 
 ## Quick Links
 
@@ -29,7 +21,7 @@ EstimationToolkit.jl provides production-ready implementations of 35+ estimation
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/yourusername/EstimationToolkit.jl")
+Pkg.add(url="https://github.com/OrbitAR7/EstimationToolkit.jl")
 ```
 
 ## Quick Example
@@ -99,14 +91,14 @@ Specialized filters for complex scenarios.
 If you use EstimationToolkit.jl in research, please cite:
 
 ```bibtex
-@software{estimationtoolkit2026,
+@software{alshammari_estimationtoolkit,
   author = {Alshammari, Hamoud},
-  title = {EstimationToolkit.jl: Comprehensive State Estimation for Julia},
+  title = {EstimationToolkit.jl},
   year = {2026},
-  url = {https://github.com/yourusername/EstimationToolkit.jl}
+  url = {https://github.com/OrbitAR7/EstimationToolkit.jl}
 }
 ```
 
 ## License
 
-MIT License. See [LICENSE](https://github.com/yourusername/EstimationToolkit.jl/blob/main/LICENSE) for details.
+MIT License. See [LICENSE](https://github.com/OrbitAR7/EstimationToolkit.jl/blob/main/LICENSE) for details.

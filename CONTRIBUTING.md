@@ -1,6 +1,6 @@
 # Contributing to EstimationToolkit.jl
 
-Thank you for your interest in contributing! This package aims to provide a comprehensive, well-tested suite of estimation algorithms for the Julia community.
+Bug fixes, new filters and better examples are all welcome. Please open an issue first for anything large.
 
 ## Getting Started
 
@@ -63,7 +63,7 @@ filter = MyFilter(x0, P0)
 
 ## Testing
 
-All new filters must include comprehensive tests:
+New filters should come with tests covering:
 
 - Basic functionality (predict/update cycles)
 - Edge cases (zero covariance, degenerate measurements)
@@ -102,8 +102,8 @@ Example:
 Add Ensemble Square-Root Filter implementation
 
 Implements the deterministic EnKF variant using square-root
-updates to maintain covariance structure. Includes comprehensive
-tests and comparison with standard EnKF.
+updates to maintain covariance structure. Adds tests and a
+comparison with the standard EnKF.
 ```
 
 ## Types of Contributions
@@ -153,7 +153,7 @@ All submissions require review. We'll check for:
 
 - Correctness (algorithm matches references)
 - Code quality (readable, well-structured)
-- Test coverage (comprehensive tests included)
+- Tests included
 - Documentation (clear docstrings and comments)
 - Performance (no unnecessary allocations or inefficiencies)
 
