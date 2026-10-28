@@ -361,3 +361,5 @@ end
 Particle filter using UKF-based optimal proposal distribution (alias for reference).
 """
 const UnscentedParticleFilter = ExtendedKalmanParticleFilter  # Can create specialized version if needed
+
+num_particles(f::ExtendedKalmanParticleFilter) = f.N_particles

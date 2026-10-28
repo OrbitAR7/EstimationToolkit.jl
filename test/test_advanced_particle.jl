@@ -14,7 +14,6 @@ using StaticArrays
 using Random
 
 # Helper function
-num_particles(f) = f.N_particles
 
 @testset "Advanced Particle Filters" begin
     # Nonlinear 1D system
