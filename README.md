@@ -1,10 +1,14 @@
 # EstimationToolkit.jl
 
+[![CI](https://github.com/OrbitAR7/EstimationToolkit.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/EstimationToolkit.jl/actions/workflows/CI.yml)
+
 Julia implementations of state estimation filters (Kalman and its square-root/information forms, EKF variants, sigma-point, ensemble, Gaussian-mixture, particle, multiple-model and grid-based filters) behind one `predict!`/`update!` interface, so they can be run side by side on the same problem.
 
 I wrote this after my graduate estimation and orbit determination courses at UT Austin. I wanted one codebase where I could swap filters on the same dynamics and measurement model and see where each one breaks, especially on nonlinear and non-Gaussian problems like the ones in orbit determination. It's a research/learning codebase (v0.9), not flight software.
 
-Status: 36 filters (34 stable, 2 experimental grid-based ones) plus 2 smoothers. The test suite has 547 tests and all pass on Julia 1.12.3. Requires Julia 1.9 or newer.
+If you just need a fast, well-maintained KF/EKF/UKF/particle filter (or IMM), use [LowLevelParticleFilters.jl](https://github.com/baggepinnen/LowLevelParticleFilters.jl). What this package adds is the less common filters in one place with the same interface: GPB1/GPB2 and static multiple-model, particle flow (Daum-Huang, Gromov), the cubature/quadrature/divided-difference sigma-point filters, information-form filters and smoother, Gaussian sum, and point-mass grid filters.
+
+Status: 36 filters (34 stable, 2 experimental grid-based ones) plus 2 smoothers, 568 tests. Requires Julia 1.10 or newer; CI runs on 1.10 and the latest release.
 
 ## Install
 
@@ -89,6 +93,33 @@ The `examples/` folder has three scripts:
 - `constant_velocity_tracking.jl`: `run_tracking_example()` runs KF, EKF, UKF and a particle filter on the same 2-D tracking problem.
 - `filter_comparison.jl`: `compare_filters(nonlinearity=..., process_noise=..., meas_noise=...)` does a Monte Carlo comparison, and `run_nonlinearity_sweep()` / `run_noise_study()` sweep those settings.
 - `orbit_determination.jl`: `run_orbit_determination()` estimates a planar orbit (polar coordinates r, ṙ, θ, θ̇) from range and range-rate at a ground station. It's a simplified 2-D problem, meant to compare filters, not a real OD setup.
+- `orbit_maneuver_imm.jl`: maneuver detection, described below.
+
+### Maneuver detection in LEO
+
+`examples/orbit_maneuver_imm.jl` simulates a 500 km circular orbit with an unannounced along-track burn (0.1 m/s² for 300 s, Δv = 30 m/s) at t = 8000 s. Tracking is range (10 m) and range-rate (1 mm/s) every 10 s from two GEO relays 180° apart, TDRS-style, so one is always in view. It's planar and point-mass gravity only, so the burn is the only thing the filters don't model. Four filters are compared, all EKF-based:
+
+- EKF with ballistic process noise (≈1 µm/s² unmodeled acceleration)
+- EKF with maneuver-level process noise (≈0.1 m/s²)
+- IMM with both models
+- GPB2 with both models
+
+```
+RMS position error [m]
+filter           before    burn + 30 min      after
+ekf_coast          0.27         35273.05    7299.10
+ekf_burn          33.29          7795.26     745.70
+imm                1.06           334.95       1.10
+gpb2               0.91           334.91       0.93
+```
+
+![position error](docs/src/assets/maneuver_position_error.png)
+
+![mode probability](docs/src/assets/maneuver_mode_probability.png)
+
+The ballistic EKF is the best filter until the burn and then diverges to tens of km, because its covariance says it can't be wrong. The high-noise EKF survives the burn but is ~30x worse than the others the rest of the time; with only one relay's range and range-rate per epoch it depends heavily on the dynamics, and a large Q throws that away. IMM and GPB2 switch to the maneuver model within one measurement (10 s), switch back 20 s after the burn ends, never go above P = 0.013 outside the burn (no false alarms in this run), and are back to ~1 m afterwards. GPB2 (4 filters) and IMM (2 filters) give nearly the same answer here, which is the usual result and the reason IMM is the common choice.
+
+Figures are made by `examples/plot_orbit_maneuver.jl` (needs Plots.jl, which isn't a package dependency).
 
 ## Tests and benchmarks
 
@@ -97,7 +128,7 @@ using Pkg
 Pkg.test("EstimationToolkit")
 ```
 
-547 tests: core 84, smoothers 156, grid 50, multiple model 94, advanced particle 123, particle flow/ensemble 40. Linear filters are checked against analytic solutions; the nonlinear and particle filters are checked on problems with known answers and for consistency. The grid tests only cover the stable filter.
+568 tests: core 84, smoothers 156, grid 50, multiple model 115, advanced particle 123, particle flow/ensemble 40. The multiple-model tests include reduction checks (with one mode, or with identical modes, IMM/GPB1/GPB2 must reproduce a plain Kalman filter exactly) and a 5000σ-innovation case that has to move the mode probabilities. Linear filters are checked against analytic solutions; the nonlinear and particle filters are checked on problems with known answers and for consistency. The grid tests only cover the stable filter.
 
 Timing depends a lot on the machine and problem size, so I haven't put numbers here. `julia --project benchmark/benchmarks.jl` runs the benchmarks.
 
