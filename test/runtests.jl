@@ -626,6 +626,7 @@ end
 include("test_smoothers.jl")
 include("test_grid_filters.jl")
 include("test_multiple_model.jl")
+include("test_multiple_model_consistency.jl")
 include("test_advanced_particle.jl")
 include("test_flow_ensemble.jl")
 

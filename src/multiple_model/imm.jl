@@ -59,7 +59,7 @@ IMM Algorithm (four steps per cycle):
 - `mode_probs::Vector{T}` - Current mode probabilities μⱼ(k)
 - `transition_matrix::Matrix{T}` - Markov transition probabilities πᵢⱼ
 - `mixing_probs::Matrix{T}` - Conditional probabilities μᵢ|ⱼ(k|k)
-- `likelihoods::Vector{T}` - Measurement likelihoods per model
+- `likelihoods::Vector{T}` - Log measurement likelihoods per model (last step)
 """
 mutable struct InteractingMultipleModel{T<:Real, N, F<:AbstractFilter} <: AbstractFilter
     filters::Vector{F}
@@ -111,7 +111,7 @@ function InteractingMultipleModel(
     @assert all(initial_probs .>= 0) "Probabilities must be non-negative"
     
     mixing_probs = zeros(T, M, M)
-    likelihoods = ones(T, M)
+    likelihoods = zeros(T, M)
     predicted_mode_probs = copy(initial_probs)
     
     mixed_states = [state_estimate(f) for f in filters]
@@ -203,7 +203,7 @@ function model_conditioned_filtering!(
         # Compute likelihood before update
         ν_j, S_j = get_predicted_innovation_stats(imm.filters[j], models_meas[j], y)
         
-        imm.likelihoods[j] = gaussian_likelihood(ν_j, S_j)
+        imm.likelihoods[j] = gaussian_loglikelihood(ν_j, S_j)
         
         # Update
         update!(imm.filters[j], models_meas[j], y)
@@ -218,16 +218,9 @@ end
 Step 3: Update mode probabilities using measurement likelihoods.
 """
 function mode_probability_update!(imm::InteractingMultipleModel{T, N, F}) where {T, N, F}
-    # μⱼ(k+1) ∝ Λⱼ(k+1) * c̄ⱼ
-    unnormalized_probs = imm.likelihoods .* imm.predicted_mode_probs
-    
-    total_prob = sum(unnormalized_probs)
-    if total_prob > eps(T)
-        imm.mode_probs .= unnormalized_probs ./ total_prob
-    else
-        # Keep prior if all likelihoods are zero
-        imm.mode_probs .= imm.predicted_mode_probs
-    end
+    # μⱼ(k+1) ∝ Λⱼ(k+1) * c̄ⱼ, done in log space (likelihoods holds log Λⱼ)
+    logw = imm.likelihoods .+ log.(max.(imm.predicted_mode_probs, floatmin(T)))
+    imm.mode_probs .= normalize_log_weights(logw)
     
     return imm
 end

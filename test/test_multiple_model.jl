@@ -322,8 +322,8 @@ using Random
         # Generate data matching model 2 (acceleration)
         Random.seed!(789)
         for k in 1:20
-            # Accelerating target
-            y_k = @SVector [0.5 * k^2]
+            # Target accelerating at 2 (model 2): x = 0.5 * 2 * k^2
+            y_k = @SVector [1.0 * k^2]
             step!(imm, models, meas_models, u, y_k, 1.0)
         end
         

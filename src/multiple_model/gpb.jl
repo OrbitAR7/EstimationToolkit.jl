@@ -21,15 +21,18 @@ GPB approximations reduce this by:
 1. **Merging**: Combine hypotheses with same current mode
 2. **Pruning**: Discard low-probability hypotheses
 
-GPB1 Algorithm:
-1. Compute model probabilities
-2. Run model-matched filters independently
-3. Combine estimates (no mixing between filters)
+GPB1 (M filters per step):
+1. Start every model-matched filter from the single merged estimate of the
+   previous step
+2. Predict and update with each model, compute each model's likelihood
+3. μⱼ ∝ Λⱼ ∑ᵢ πᵢⱼ μᵢ, then merge into one Gaussian
 
-GPB2 Algorithm:
-1. Maintain two-step history for each model
-2. Merge hypotheses that end in same model pair
-3. More accurate than GPB1 but more complex
+GPB2 (M² filters per step):
+1. Keep one merged estimate per mode from the previous step
+2. For every pair (i, j), start from the mode-i estimate and run model j
+3. μᵢⱼ ∝ Λᵢⱼ πᵢⱼ μᵢ; merge over i to get one estimate per current mode j
+
+The IMM has the cost of GPB1 and accuracy close to GPB2.
 
 # Reference
 - EstimationNotes.pdf §14.2.1 (GPB Algorithms)
@@ -50,9 +53,8 @@ GPB2 Algorithm:
 """
     GPB1Filter{T<:Real, N, F}
 
-GPB1 filter - parallel filters with global mode probability update.
-
-Simpler than IMM: no mixing, each filter runs independently.
+GPB1 filter: every step, all model-matched filters restart from the one
+merged estimate of the previous step.
 """
 mutable struct GPB1Filter{T<:Real, N, F<:AbstractFilter} <: AbstractFilter
     filters::Vector{F}
@@ -80,7 +82,7 @@ function GPB1Filter(
     @assert size(transition_matrix) == (M, M) "Transition matrix must be M×M"
     @assert length(initial_probs) == M "Initial probabilities must match number of filters"
     
-    likelihoods = ones(T, M)
+    likelihoods = zeros(T, M)   # log-likelihoods of the last step
     x̂ = compute_overall_estimate(filters, initial_probs)
     P = compute_overall_covariance(filters, initial_probs, x̂)
     N = length(x̂)
@@ -104,37 +106,24 @@ function step!(
     
     M = length(gpb1.filters)
     
-    # 1. Predict each filter independently
-    for j in 1:M
-        predict!(gpb1.filters[j], models_dyn[j], u, dt)
-    end
+    logw = zeros(T, M)
+    predicted_probs = gpb1.transition_matrix' * gpb1.mode_probs   # ∑ᵢ πᵢⱼ μᵢ
     
-    # 2. Update each filter and compute likelihood
     for j in 1:M
-        # Compute innovation before update
+        # Every filter starts from the merged estimate of the previous step
+        set_state!(gpb1.filters[j], gpb1.x̂, gpb1.P)
+        predict!(gpb1.filters[j], models_dyn[j], u, dt)
+        
         ν_j, S_j = get_predicted_innovation_stats(gpb1.filters[j], models_meas[j], y)
+        gpb1.likelihoods[j] = gaussian_loglikelihood(ν_j, S_j)
+        logw[j] = gpb1.likelihoods[j] + log(max(predicted_probs[j], floatmin(T)))
         
-        gpb1.likelihoods[j] = gaussian_likelihood(ν_j, S_j)
-        
-        # Update filter
         update!(gpb1.filters[j], models_meas[j], y)
     end
     
-    # 3. Update mode probabilities
-    # Predicted mode probs: μ̄_j = ∑ᵢ πᵢⱼ μᵢ
-    predicted_probs = gpb1.transition_matrix' * gpb1.mode_probs
+    gpb1.mode_probs .= normalize_log_weights(logw)
     
-    # Updated mode probs: μ_j ∝ Λ_j * μ̄_j
-    unnorm_probs = gpb1.likelihoods .* predicted_probs
-    total = sum(unnorm_probs)
-    
-    if total > eps(T)
-        gpb1.mode_probs .= unnorm_probs / total
-    else
-        gpb1.mode_probs .= predicted_probs
-    end
-    
-    # 4. Combine estimates
+    # Merge into a single Gaussian
     gpb1.x̂ = compute_overall_estimate(gpb1.filters, gpb1.mode_probs)
     gpb1.P = compute_overall_covariance(gpb1.filters, gpb1.mode_probs, gpb1.x̂)
     
@@ -154,22 +143,23 @@ most_probable_mode(gpb1::GPB1Filter) = argmax(gpb1.mode_probs)
 """
     GPB2Filter{T<:Real, N, F}
 
-GPB2 filter - maintains two-step mode history.
-
-More accurate than GPB1 by tracking mode sequences (i,j) where i is previous mode.
+GPB2 filter: keeps one merged estimate per mode and runs a filter for every
+(previous mode i, current mode j) pair.
 """
 mutable struct GPB2Filter{T<:Real, N, F<:AbstractFilter} <: AbstractFilter
     # Bank of filters for each mode pair (i,j)
     filters::Matrix{F}  # M × M matrix of filters
     
-    # Joint probabilities: μᵢⱼ = P(mode_k = j, mode_{k-1} = i | y₁:ₖ)
+    # Joint probabilities: μᵢⱼ = P(mode_{k-1} = i, mode_k = j | y₁:ₖ)
     joint_probs::Matrix{T}
     
-    # Marginal mode probabilities
+    # Marginal mode probabilities μⱼ(k) and the merged estimate for each mode
     mode_probs::Vector{T}
+    mode_states::Vector{SVector{N, T}}
+    mode_covs::Vector{SMatrix{N, N, T}}
     
     transition_matrix::Matrix{T}
-    likelihoods::Vector{T}
+    likelihoods::Matrix{T}  # log Λᵢⱼ of the last step
     
     # Overall estimate
     x̂::SVector{N, T}
@@ -215,13 +205,16 @@ function GPB2Filter(
     end
     joint_probs ./= sum(joint_probs)
     
-    mode_probs = vec(sum(joint_probs, dims=1))
-    likelihoods = ones(T, M)
+    # Before any data, every mode starts from the template's estimate
+    mode_probs = copy(initial_probs)
+    mode_states = [x0 for _ in 1:M]
+    mode_covs = [P0 for _ in 1:M]
+    likelihoods = zeros(T, M, M)
     
     x̂ = x0
     P = P0
     
-    return GPB2Filter{T, N, F}(filters, joint_probs, mode_probs, 
+    return GPB2Filter{T, N, F}(filters, joint_probs, mode_probs, mode_states, mode_covs,
                                 transition_matrix, likelihoods, x̂, P, M)
 end
 
@@ -241,85 +234,52 @@ function step!(
     
     M = gpb2.M
     
-    # 1. Predict each filter in the bank
-    for i in 1:M
-        for j in 1:M
-            predict!(gpb2.filters[i,j], models_dyn[j], u, dt)
-        end
-    end
-    
-    # 2. Update filters and compute likelihoods for each current mode j
-    for j in 1:M
-        # For mode j, we need to merge estimates from all previous modes i
-        # Compute likelihood for mode j (using merged estimate)
+    # 1. For each pair (i, j): start from the mode-i estimate, run model j
+    logw = zeros(T, M, M)
+    for i in 1:M, j in 1:M
+        filt = gpb2.filters[i, j]
+        set_state!(filt, gpb2.mode_states[i], gpb2.mode_covs[i])
+        predict!(filt, models_dyn[j], u, dt)
         
-        # Get marginal probability for mode j at k-1
-        μj_prev = sum(gpb2.joint_probs[:, j])
+        ν, S = get_predicted_innovation_stats(filt, models_meas[j], y)
+        gpb2.likelihoods[i, j] = gaussian_loglikelihood(ν, S)
+        logw[i, j] = gpb2.likelihoods[i, j] +
+                     log(max(gpb2.transition_matrix[i, j], floatmin(T))) +
+                     log(max(gpb2.mode_probs[i], floatmin(T)))
         
-        if μj_prev > eps(T)
-            # Weighted merge of filters ending in mode j
-            x̂_merged = zeros(SVector{N, T})
-            for i in 1:M
-                weight = gpb2.joint_probs[i,j] / μj_prev
-                x̂_merged += weight * state_estimate(gpb2.filters[i,j])
-            end
-            
-            ŷ = measure(models_meas[j], x̂_merged)
-            
-            # Use first filter's innovation covariance (approximation)
-            _, S = get_predicted_innovation_stats(gpb2.filters[1,j], models_meas[j], y)
-            ν = y - ŷ
-            
-            gpb2.likelihoods[j] = gaussian_likelihood(ν, S)
-        else
-            gpb2.likelihoods[j] = T(1.0)
-        end
-        
-        # Update all filters ending in mode j
-        for i in 1:M
-            update!(gpb2.filters[i,j], models_meas[j], y)
-        end
+        update!(filt, models_meas[j], y)
     end
     
-    # 3. Update joint probabilities
-    # μᵢⱼ(k) ∝ Λⱼ(k) * πᵢⱼ * μᵢ(k-1)
-    new_joint_probs = zeros(T, M, M)
-    μ_prev = vec(sum(gpb2.joint_probs, dims=2))  # Previous marginals
-    
-    for i in 1:M
-        for j in 1:M
-            new_joint_probs[i,j] = gpb2.likelihoods[j] * 
-                                   gpb2.transition_matrix[i,j] * 
-                                   μ_prev[i]
-        end
-    end
-    
-    total = sum(new_joint_probs)
-    if total > eps(T)
-        new_joint_probs ./= total
-    end
-    gpb2.joint_probs = new_joint_probs
-    
-    # Update marginal mode probabilities
+    # 2. Joint probabilities μᵢⱼ ∝ Λᵢⱼ πᵢⱼ μᵢ and new marginals μⱼ = ∑ᵢ μᵢⱼ
+    gpb2.joint_probs = normalize_log_weights(logw)
     gpb2.mode_probs = vec(sum(gpb2.joint_probs, dims=1))
     
-    # 4. Combine estimates across all mode pairs
-    gpb2.x̂ = zeros(SVector{N, T})
-    for i in 1:M
-        for j in 1:M
-            gpb2.x̂ += gpb2.joint_probs[i,j] * state_estimate(gpb2.filters[i,j])
+    # 3. Merge over the previous mode i: one Gaussian per current mode j
+    for j in 1:M
+        μj = gpb2.mode_probs[j]
+        w = μj > 0 ? gpb2.joint_probs[:, j] ./ μj : fill(T(1) / M, M)
+        xj = zeros(SVector{N, T})
+        for i in 1:M
+            xj += w[i] * state_estimate(gpb2.filters[i, j])
         end
+        Pj = zeros(SMatrix{N, N, T})
+        for i in 1:M
+            d = state_estimate(gpb2.filters[i, j]) - xj
+            Pj += w[i] * (covariance(gpb2.filters[i, j]) + d * d')
+        end
+        gpb2.mode_states[j] = xj
+        gpb2.mode_covs[j] = make_symmetric(Pj)
     end
     
-    # Covariance
+    # 4. Overall estimate
+    gpb2.x̂ = zeros(SVector{N, T})
+    for j in 1:M
+        gpb2.x̂ += gpb2.mode_probs[j] * gpb2.mode_states[j]
+    end
     P_sum = zeros(SMatrix{N, N, T})
-    for i in 1:M
-        for j in 1:M
-            x̂ᵢⱼ = state_estimate(gpb2.filters[i,j])
-            Pᵢⱼ = covariance(gpb2.filters[i,j])
-            diff = x̂ᵢⱼ - gpb2.x̂
-            P_sum += gpb2.joint_probs[i,j] * (Pᵢⱼ + diff * diff')
-        end
+    for j in 1:M
+        d = gpb2.mode_states[j] - gpb2.x̂
+        P_sum += gpb2.mode_probs[j] * (gpb2.mode_covs[j] + d * d')
     end
     gpb2.P = make_symmetric(P_sum)
     

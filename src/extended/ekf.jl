@@ -132,3 +132,17 @@ ExtendedKalmanFilter(belief::GaussianBelief{T, N}) where {T, N} =
     ExtendedKalmanFilter(belief.μ, belief.Σ)
 
 GaussianBelief(ekf::ExtendedKalmanFilter) = GaussianBelief(ekf.x, ekf.P)
+
+"""
+    get_predicted_innovation_stats(ekf::ExtendedKalmanFilter, model, y)
+
+Innovation and its covariance at the current (predicted) state, without updating.
+Lets the EKF be used inside IMM/GPB filter banks.
+"""
+function get_predicted_innovation_stats(ekf::ExtendedKalmanFilter, model::AbstractMeasurementModel, y)
+    H = jacobian_x(model, ekf.x)
+    R = measurement_noise_cov(model)
+    ν = y - measure(model, ekf.x)
+    S = H * ekf.P * H' + R
+    return ν, make_symmetric(S)
+end

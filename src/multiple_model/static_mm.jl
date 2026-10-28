@@ -45,7 +45,7 @@ P(k) = ∑ⱼ μⱼ(k)[Pⱼ(k) + (x̂ⱼ(k) - x̂(k))(x̂ⱼ(k) - x̂(k))']
 # Fields
 - `filters::Vector{F}` - Bank of filters (one per model)
 - `model_probs::Vector{T}` - Model probabilities μⱼ
-- `likelihoods::Vector{T}` - Measurement likelihoods per model
+- `likelihoods::Vector{T}` - Log measurement likelihoods per model (last update)
 """
 mutable struct StaticMultipleModelFilter{T<:Real, N, F<:AbstractFilter} <: AbstractFilter
     filters::Vector{F}
@@ -77,7 +77,7 @@ function StaticMultipleModelFilter(
     @assert abs(sum(initial_probs) - 1.0) < 1e-6 "Probabilities must sum to 1"
     @assert all(initial_probs .>= 0) "Probabilities must be non-negative"
     
-    likelihoods = ones(T, M)
+    likelihoods = zeros(T, M)
     
     # Compute initial overall estimate
     x̂ = compute_overall_estimate(filters, initial_probs)
@@ -143,24 +143,17 @@ function update!(
         # Compute innovation and its covariance before update
         ν_j, S_j = get_predicted_innovation_stats(smm.filters[j], models_meas[j], y)
         
-        # Measurement likelihood: Λⱼ = N(y; ŷⱼ, Sⱼ)
-        smm.likelihoods[j] = gaussian_likelihood(ν_j, S_j)
+        # Measurement log-likelihood: log Λⱼ = log N(y; ŷⱼ, Sⱼ)
+        smm.likelihoods[j] = gaussian_loglikelihood(ν_j, S_j)
         
         # Perform measurement update
         update!(smm.filters[j], models_meas[j], y)
     end
     
     # Update model probabilities using Bayes' rule
-    # μⱼ(k) ∝ Λⱼ(k) * μⱼ(k-1)
-    unnormalized_probs = smm.likelihoods .* smm.model_probs
-    
-    total_prob = sum(unnormalized_probs)
-    if total_prob > eps(T)
-        smm.model_probs .= unnormalized_probs ./ total_prob
-    else
-        # If all likelihoods are zero, keep prior
-        smm.model_probs .= smm.model_probs
-    end
+    # μⱼ(k) ∝ Λⱼ(k) * μⱼ(k-1), in log space so large innovations don't underflow
+    logw = smm.likelihoods .+ log.(max.(smm.model_probs, floatmin(T)))
+    smm.model_probs .= normalize_log_weights(logw)
     
     # Compute overall MMSE estimate
     smm.x̂ = compute_overall_estimate(smm.filters, smm.model_probs)
@@ -250,6 +243,33 @@ function gaussian_likelihood(ν::AbstractVector{T}, S::AbstractMatrix{T}) where 
     log_like = -0.5 * (n * log(2π) + log_det + mahal)
     
     return exp(log_like)
+end
+
+"""
+    gaussian_loglikelihood(innovation, S)
+
+Log of the Gaussian likelihood N(ν; 0, S). Mode probabilities are computed from
+these rather than from `gaussian_likelihood`, because with tight measurements a
+large innovation (a maneuver, a fault) makes exp() underflow to zero for every
+model at once.
+"""
+function gaussian_loglikelihood(ν::AbstractVector{T}, S::AbstractMatrix{T}) where {T}
+    n = length(ν)
+    if !isposdef(S)
+        S = ensure_spd(make_symmetric(S))
+    end
+    return -0.5 * (n * log(2π) + logdet(S) + dot(ν, S \ ν))
+end
+
+"""
+    normalize_log_weights(logw)
+
+Return exp.(logw) normalized to sum to one, using the max-shift trick.
+"""
+function normalize_log_weights(logw::AbstractArray{T}) where {T}
+    m = maximum(logw)
+    w = exp.(logw .- m)
+    return w ./ sum(w)
 end
 
 """
