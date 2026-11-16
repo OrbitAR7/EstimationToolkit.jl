@@ -132,3 +132,21 @@ function solve_spd(P::AbstractMatrix, B::AbstractMatrix)
     C = cholesky(Symmetric(P))
     return C \ B
 end
+
+
+"""
+    psd_sqrt(Q)
+
+A matrix L with L·L' = Q for a symmetric positive semidefinite Q, for sampling
+N(0, Q) as L·z with z ~ N(0, I). Uses the Cholesky factor when Q is positive
+definite and otherwise the eigendecomposition with negative rounding-level
+eigenvalues set to zero, so a singular Q (for example process noise that enters
+only through the accelerations) is accepted.
+"""
+function psd_sqrt(Q::AbstractMatrix{T}) where {T<:Real}
+    S = Symmetric(Matrix{T}(make_symmetric(Q)))
+    C = cholesky(S; check=false)
+    issuccess(C) && return Matrix(C.L)
+    E = eigen(S)
+    return E.vectors * Diagonal(sqrt.(max.(E.values, zero(T))))
+end

@@ -154,30 +154,22 @@ function cubature_transform(μ::SVector{N, T}, Σ::SMatrix{N, N, T}) where {N, T
 end
 
 """
-    gauss_hermite_points(n, order=3)
+    gauss_hermite_points(n)
 
-Generate 1D Gauss-Hermite quadrature points and weights.
+Nodes and weights of the n-point Gauss-Hermite rule for the standard normal
+distribution: Σᵢ wᵢ g(ξᵢ) = E[g(Z)], Z ~ N(0, 1), exactly for polynomials g of
+degree up to 2n - 1. The weights sum to 1. Computed with the Golub-Welsch
+algorithm from the recurrence of the probabilists' Hermite polynomials
+(x·Heₖ = Heₖ₊₁ + k·Heₖ₋₁), so any n ≥ 1 is supported.
 
-# Arguments
-- `n`: Number of points (typically 3-5)
-- `order`: Polynomial order (n points integrate polynomials up to order 2n-1)
-
-# Returns
-Tuple of (points, weights) for 1D quadrature.
+For a Gaussian N(μ, L·L') the points are μ + L·ξ with the tensor-product weights.
 """
 function gauss_hermite_points(n::Int)
-    # Using standard lookup tables for common cases
-    if n == 3
-        ξ = [-sqrt(3/2), 0.0, sqrt(3/2)]
-        w = [1/6, 2/3, 1/6]
-    elseif n == 5
-        ξ = [-sqrt(5 + 2*sqrt(10/7)), -sqrt(5 - 2*sqrt(10/7)), 0.0,
-             sqrt(5 - 2*sqrt(10/7)), sqrt(5 + 2*sqrt(10/7))]
-        w = [1/(12*sqrt(10/7)), (49 + 17*sqrt(10/7))/180, 64/180,
-             (49 + 17*sqrt(10/7))/180, 1/(12*sqrt(10/7))]
-    else
-        error("Gauss-Hermite points only implemented for n=3 or n=5")
-    end
-    
-    return ξ, w
+    n >= 1 || throw(ArgumentError("number of Gauss-Hermite points must be at least 1"))
+    n == 1 && return [0.0], [1.0]
+    J = SymTridiagonal(zeros(n), sqrt.(Float64.(1:n-1)))
+    E = eigen(J)
+    ξ = E.values
+    w = E.vectors[1, :] .^ 2
+    return ξ, w ./ sum(w)
 end

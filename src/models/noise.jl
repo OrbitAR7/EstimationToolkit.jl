@@ -5,15 +5,16 @@
 
 Sample from the process noise distribution.
 
-Default implementation assumes zero-mean Gaussian.
+Default implementation assumes zero-mean Gaussian. `Q` may be positive
+semidefinite (see [`psd_sqrt`](@ref)).
 """
 function sample_process_noise(model::AbstractDynamicsModel{NX, NU, NV}, dt, 
                                rng=Random.GLOBAL_RNG) where {NX, NU, NV}
     Q = process_noise_cov(model, dt)
-    # Use Cholesky for sampling: v ~ N(0, Q) => v = L*z where z ~ N(0, I)
-    L = cholesky(Symmetric(Q)).L
-    z = randn(rng, NV)
-    return L * z
+    # v ~ N(0, Q) => v = L*z with L*L' = Q and z ~ N(0, I). Q may be singular.
+    n = size(Q, 1)
+    v = psd_sqrt(Q) * randn(rng, n)
+    return Q isa StaticMatrix ? SVector{n}(v) : v
 end
 
 """

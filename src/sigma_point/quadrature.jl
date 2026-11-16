@@ -30,7 +30,7 @@ where χᵢ are Gauss-Hermite quadrature points scaled to match the Gaussian dis
 - `P::SMatrix{N,N,T}` - Covariance matrix
 - `ν::Union{Nothing, SVector}` - Innovation
 - `S::Union{Nothing, SMatrix}` - Innovation covariance
-- `quadrature_order::Int` - Order of Gauss-Hermite quadrature (3 or 5)
+- `quadrature_order::Int` - Number of Gauss-Hermite points per dimension (any n ≥ 1; cost grows as nᵈ)
 
 # Constructor
 ```julia
@@ -68,9 +68,7 @@ mutable struct QuadratureKalmanFilter{T<:Real, N} <: AbstractFilter
     
     function QuadratureKalmanFilter(x0::SVector{N,T}, P0::SMatrix{N,N,T}; 
                                    quadrature_order::Int=3) where {N,T}
-        if !(quadrature_order in [3, 5])
-            error("Quadrature order must be 3 or 5")
-        end
+        quadrature_order >= 1 || throw(ArgumentError("quadrature_order must be at least 1"))
         
         # Ensure P0 is SPD
         P0_sym = make_symmetric(P0)
@@ -116,18 +114,14 @@ function generate_quadrature_points(μ::SVector{N,T}, Σ::SMatrix{N,N,T}, order:
         # Extract ξ values for each dimension
         ξ_vector = SVector{N,T}([ξ_1d[idx[i]] for i in 1:N])
         
-        # Transform: χ = μ + √2·L·ξ
-        points[k] = μ + sqrt(T(2)) * SMatrix{N,N,T}(L) * ξ_vector
+        # Transform: χ = μ + L·ξ (ξ are standard-normal nodes)
+        points[k] = μ + SMatrix{N,N,T}(L) * ξ_vector
         
         # Weight is product of 1D weights
         weights[k] = prod([w_1d[idx[i]] for i in 1:N])
     end
     
-    # Normalize weights (Gauss-Hermite has ∫exp(-x²)dx = √π normalization)
-    # For multidimensional case: normalization factor is π^(-N/2)
-    normalization = pi^(-N/2)
-    weights .*= normalization
-    
+    # the 1-D weights sum to 1, so the product weights do too
     return points, weights
 end
 
@@ -218,15 +212,7 @@ function update!(qkf::QuadratureKalmanFilter{T,N}, model::AbstractMeasurementMod
     # State update
     qkf.x = qkf.x + K_static * qkf.ν
     
-    # Covariance update (Joseph form for numerical stability)
-    I_KH = SMatrix{N,N,T}(I)
-    for i in 1:N
-        for j in 1:NY
-            I_KH = I_KH - K_static[:, j] * measured_points[1]'  # Approximate H
-        end
-    end
-    
-    # Better approach: use Joseph form directly with computed quantities
+    # Covariance update
     P_updated = qkf.P - K_static * qkf.S * K_static'
     P_updated_sym = make_symmetric(P_updated)
     qkf.P = ensure_spd(P_updated_sym)

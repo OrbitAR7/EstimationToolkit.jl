@@ -118,7 +118,7 @@ export normalized_innovation_squared, normalized_estimation_error_squared
 export consistency_test
 
 # Export utilities
-export is_positive_definite, make_symmetric, ensure_spd
+export is_positive_definite, make_symmetric, ensure_spd, psd_sqrt
 export effective_sample_size, sample_mean, sample_covariance
 export reweight_log!, log_likelihood
 export systematic_resample, stratified_resample, multinomial_resample

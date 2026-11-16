@@ -631,5 +631,6 @@ include("test_advanced_particle.jl")
 include("test_flow_ensemble.jl")
 include("test_log_weights.jl")
 include("test_adaptive_mixture.jl")
+include("test_nonsquare_measurements.jl")
 
 println("\n✓ All tests passed!")

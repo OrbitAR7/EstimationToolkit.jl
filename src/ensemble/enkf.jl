@@ -343,7 +343,7 @@ function apply_inflation!(enkf::EnsembleKalmanFilter{T, N}) where {T<:Real, N}
     # Additive inflation
     if enkf.additive_inflation !== nothing
         Q_add = enkf.additive_inflation
-        Q_sqrt = Matrix(cholesky(Symmetric(Q_add)).L)
+        Q_sqrt = psd_sqrt(Q_add)
         
         for i in 1:enkf.ensemble_size
             η = Q_sqrt * randn(T, N)
