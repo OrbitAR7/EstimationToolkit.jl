@@ -107,19 +107,12 @@ Resamples if effective sample size drops below threshold.
 """
 function update!(pf::BootstrapParticleFilter{T, N}, model::AbstractMeasurementModel,
                  y) where {T, N}
-    # Update weights using measurement likelihood
-    for i in eachindex(pf.particles)
-        likelihood_val = likelihood(model, y, pf.particles[i])
-        pf.weights[i] *= likelihood_val
-    end
-    
-    # Normalize weights
-    w_sum = sum(pf.weights)
-    if w_sum > 0
-        pf.weights ./= w_sum
-    else
-        # All weights are zero - reset to uniform (degeneracy)
-        @warn "Particle filter degeneracy: all weights near zero"
+    # Update weights using the measurement likelihood, in log space so that a
+    # measurement in the tail of every particle still reweights them
+    loglik = [log_likelihood(model, y, x) for x in pf.particles]
+    if !reweight_log!(pf.weights, loglik)
+        # No particle has a finite log-weight - reset to uniform (degeneracy)
+        @warn "Particle filter degeneracy: no particle has a finite weight"
         pf.weights .= 1.0 / length(pf.weights)
     end
     

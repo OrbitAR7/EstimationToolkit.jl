@@ -176,21 +176,18 @@ function update!(
     R = measurement_noise_cov(model_meas)
     
     # Update weights using measurement likelihood
+    loglik = Vector{T}(undef, length(gpf.particles))
     for i in eachindex(gpf.particles)
         ŷ = measure(model_meas, gpf.particles[i])
         innov = y - ŷ
-        
-        # Gaussian likelihood: exp(-0.5 * innov' * R^-1 * innov)
-        log_like = -0.5 * dot(innov, R \ innov)
-        gpf.weights[i] *= exp(log_like)
+
+        # Gaussian log-likelihood: -0.5 * innov' * R^-1 * innov (+ const)
+        loglik[i] = -0.5 * dot(innov, R \ innov)
     end
-    
-    # Normalize weights
-    total_weight = sum(gpf.weights)
-    if total_weight > eps(T)
-        gpf.weights ./= total_weight
-    else
-        # Uniform fallback if all weights collapsed
+
+    # Update and normalize weights in log space
+    if !reweight_log!(gpf.weights, loglik)
+        # Uniform fallback if no particle has a finite weight
         gpf.weights .= T(1.0) / gpf.N_particles
     end
     

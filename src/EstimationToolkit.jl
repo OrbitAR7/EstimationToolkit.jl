@@ -65,6 +65,7 @@ include("gaussian_mixture/gsf.jl")
 include("gaussian_mixture/splitting.jl")
 include("gaussian_mixture/merging.jl")
 include("gaussian_mixture/ensemble_gmm.jl")
+include("gaussian_mixture/adaptive_gmf.jl")
 
 # Ensemble methods
 include("ensemble/enkf.jl")
@@ -93,7 +94,7 @@ export BootstrapParticleFilter, SequentialImportanceResampling, AuxiliaryParticl
 export GaussianParticleFilter, ExtendedKalmanParticleFilter, UnscentedParticleFilter
 export RaoBlackwellizedParticleFilter, MarginalParticleFilter
 export PointMassFilter, AdaptiveGridFilter, MarginalizedPointMassFilter
-export GaussianSumFilter, EnsembleGMMFilter
+export GaussianSumFilter, EnsembleGMMFilter, AdaptiveGaussianMixtureFilter
 export EnsembleKalmanFilter, EnsembleTransformKalmanFilter, EnsembleSquareRootFilter
 export StaticMultipleModelFilter, InteractingMultipleModel
 export GPB1Filter, GPB2Filter
@@ -119,6 +120,7 @@ export consistency_test
 # Export utilities
 export is_positive_definite, make_symmetric, ensure_spd
 export effective_sample_size, sample_mean, sample_covariance
+export reweight_log!, log_likelihood
 export systematic_resample, stratified_resample, multinomial_resample
 export num_particles, effective_particles
 export bootstrap_proposal, information_matrix
@@ -126,6 +128,8 @@ export ekf_proposal, ukf_proposal
 
 # Export GMM utilities
 export split_component, merge_components, prune_components!
+export split_gaussian, split!, reduce_components!, merge_cost
+export principal_sqrt, mixture_logpdf, gaussian_logpdf
 export num_components, effective_components
 export particles_to_gmm
 

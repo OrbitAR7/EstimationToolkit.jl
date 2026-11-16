@@ -187,11 +187,13 @@ function update!(
     y::AbstractVector
 ) where {T, NL, NN, KF}
     
+    loglik = Vector{T}(undef, rbpf.N_particles)
+
     # For each particle
     for i in 1:rbpf.N_particles
         xₙ = rbpf.particles_nonlinear[i]
         kf = rbpf.kalman_filters[i]
-        
+
         # Get measurement model components
         H = linear_measurement_matrix(model_meas, xₙ)
         h = nonlinear_measurement(model_meas, xₙ)
@@ -209,21 +211,18 @@ function update!(
         
         # Update weight based on marginal likelihood p(y | xₙ⁽ⁱ⁾, y₁:ₖ₋₁)
         # This is Gaussian: N(y; ŷ, S)
-        log_like = -0.5 * (dot(ν, S \ ν) + logdet(S) + length(y) * log(2π))
-        rbpf.weights[i] *= exp(log_like)
-        
+        # (S differs between particles, so the log-determinant term must be kept)
+        loglik[i] = -0.5 * (dot(ν, S \ ν) + logdet(S) + length(y) * log(2π))
+
         # Kalman update for linear substate
         K = kf.P * H' / S
         kf.x = kf.x + K * ν
         kf.P = (I - K * H) * kf.P
         kf.P = make_symmetric(kf.P)
     end
-    
-    # Normalize weights
-    total_weight = sum(rbpf.weights)
-    if total_weight > eps(T)
-        rbpf.weights ./= total_weight
-    else
+
+    # Update and normalize weights in log space
+    if !reweight_log!(rbpf.weights, loglik)
         rbpf.weights .= T(1.0) / rbpf.N_particles
     end
     

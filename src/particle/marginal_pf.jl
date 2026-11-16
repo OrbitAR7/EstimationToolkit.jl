@@ -153,6 +153,7 @@ function update!(
     R = measurement_noise_cov(model_meas)
     
     # Update each marginal
+    loglik = Vector{T}(undef, mpf.N_particles)
     for dim in 1:N
         for p in 1:mpf.N_particles
             # Reconstruct full state
@@ -165,15 +166,11 @@ function update!(
             innov = y - ŷ
             
             # Update weight (likelihood)
-            log_like = -0.5 * dot(innov, R \ innov)
-            mpf.marginal_weights[dim][p] *= exp(log_like)
+            loglik[p] = -0.5 * dot(innov, R \ innov)
         end
-        
-        # Normalize weights for this dimension
-        total = sum(mpf.marginal_weights[dim])
-        if total > eps(T)
-            mpf.marginal_weights[dim] ./= total
-        else
+
+        # Update and normalize weights for this dimension in log space
+        if !reweight_log!(mpf.marginal_weights[dim], loglik)
             mpf.marginal_weights[dim] .= T(1.0) / mpf.N_particles
         end
         

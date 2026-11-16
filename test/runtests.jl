@@ -629,5 +629,7 @@ include("test_multiple_model.jl")
 include("test_multiple_model_consistency.jl")
 include("test_advanced_particle.jl")
 include("test_flow_ensemble.jl")
+include("test_log_weights.jl")
+include("test_adaptive_mixture.jl")
 
 println("\n✓ All tests passed!")

@@ -134,28 +134,23 @@ function update!(apf::AuxiliaryParticleFilter{T,N}, model::AbstractMeasurementMo
     # Step 1: Compute auxiliary weights (look-ahead)
     # For simplicity, we use the current particle state as the predicted mean
     # More sophisticated versions would propagate particles first
-    aux_weights = similar(apf.weights)
-    
+    aux_weights = copy(apf.weights)
+    aux_loglik = Vector{T}(undef, N_particles)
+
     @inbounds for i in 1:N_particles
         # Predicted measurement (using current particle as predicted mean)
         y_pred = measure(model, apf.particles[i])
-        
+
         # Innovation
         ν = y - y_pred
-        
-        # Likelihood (Gaussian): p(y|x) ∝ exp(-0.5 * ν' * R⁻¹ * ν)
-        log_likelihood = -0.5 * dot(ν, R_inv * ν)
-        
-        # Auxiliary weight = prior weight * predicted likelihood
-        aux_weights[i] = apf.weights[i] * exp(log_likelihood)
+
+        # Log-likelihood (Gaussian): log p(y|x) = -0.5 * ν' * R⁻¹ * ν + const
+        aux_loglik[i] = -0.5 * dot(ν, R_inv * ν)
     end
-    
-    # Normalize auxiliary weights
-    sum_aux_weights = sum(aux_weights)
-    if sum_aux_weights > 0
-        aux_weights ./= sum_aux_weights
-    else
-        # Fallback to uniform weights if all likelihoods are zero
+
+    # Auxiliary weight = prior weight * predicted likelihood, normalized in log space
+    if !reweight_log!(aux_weights, aux_loglik)
+        # Fallback to uniform weights if no particle has a finite weight
         fill!(aux_weights, 1.0 / N_particles)
     end
     
@@ -180,23 +175,22 @@ function update!(apf::AuxiliaryParticleFilter{T,N}, model::AbstractMeasurementMo
     
     # Step 3: Compute final weights
     # Weight adjustment based on likelihood ratio: p(y|x) / p(y|μ)
+    final_loglik = Vector{T}(undef, N_particles)
     @inbounds for i in 1:N_particles
         # Predicted measurement at current particle (after potential resampling)
         y_pred_current = measure(model, apf.particles[i])
         ν_current = y - y_pred_current
-        log_likelihood_current = -0.5 * dot(ν_current, R_inv * ν_current)
-        
+
         # Since we already used the predicted likelihood in auxiliary weights,
         # the final weight is just the likelihood at the current particle
         # (the ratio cancels out if we used the same particle for both)
-        apf.weights[i] = exp(log_likelihood_current)
+        final_loglik[i] = -0.5 * dot(ν_current, R_inv * ν_current)
     end
-    
-    # Step 4: Normalize final weights
-    sum_weights = sum(apf.weights)
-    if sum_weights > 0
-        apf.weights ./= sum_weights
-    else
+
+    # Step 4: Normalize final weights (log space; the weights are replaced by the
+    # likelihood, not multiplied by it)
+    fill!(apf.weights, one(T))
+    if !reweight_log!(apf.weights, final_loglik)
         # Fallback to uniform weights
         fill!(apf.weights, 1.0 / N_particles)
     end

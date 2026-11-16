@@ -206,13 +206,19 @@ function regularized_resample!(rpf::RegularizedParticleFilter{T,N}) where {T,N}
     # Resample and add kernel noise (regularization)
     N_particles = length(rpf.particles)
     new_particles = Vector{SVector{N,T}}(undef, N_particles)
-    
+
+    # If the weights have collapsed onto a single particle the weighted sample
+    # covariance, and with it the bandwidth, is zero. There is no kernel to draw
+    # from, so fall back to plain resampling for this step.
+    jitter = is_positive_definite(H_scaled)
+
     for i in 1:N_particles
         # Get resampled particle
         base_particle = rpf.particles[indices[i]]
-        
+
         # Add kernel noise for regularization
-        new_particles[i] = sample_from_kernel(base_particle, H_scaled, rpf.kernel)
+        new_particles[i] = jitter ? sample_from_kernel(base_particle, H_scaled, rpf.kernel) :
+                                    base_particle
     end
     
     # Update particles and reset weights
@@ -247,25 +253,20 @@ function update!(rpf::RegularizedParticleFilter{T,N}, model::AbstractMeasurement
     R_inv = inv(R_sym)
     
     # Update weights based on measurement likelihood
+    loglik = Vector{T}(undef, N_particles)
     @inbounds for i in 1:N_particles
         # Predicted measurement
         y_pred = measure(model, rpf.particles[i])
-        
+
         # Innovation
         ν = y - y_pred
-        
+
         # Log-likelihood (Gaussian): log p(y|x) = -0.5 * ν' * R⁻¹ * ν - log normalization
-        log_likelihood = -0.5 * dot(ν, R_inv * ν)
-        
-        # Update weight
-        rpf.weights[i] *= exp(log_likelihood)
+        loglik[i] = -0.5 * dot(ν, R_inv * ν)
     end
-    
-    # Normalize weights
-    sum_weights = sum(rpf.weights)
-    if sum_weights > 0
-        rpf.weights ./= sum_weights
-    else
+
+    # Update and normalize weights in log space
+    if !reweight_log!(rpf.weights, loglik)
         # Fallback to uniform weights
         fill!(rpf.weights, 1.0 / N_particles)
     end

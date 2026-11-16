@@ -112,3 +112,42 @@ function normalize_log_weights(log_weights::AbstractVector{T}) where {T}
     weights = exp.(log_weights .- max_log_w)
     return weights ./ sum(weights)
 end
+
+"""
+    reweight_log!(weights, loglik) -> Bool
+
+Bayes reweighting in log space: `weights[i] ∝ weights[i] * exp(loglik[i])`,
+normalized to sum to one.
+
+Doing this as `weights[i] *= exp(loglik[i])` underflows when every sample is far
+from the measurement in units of the measurement noise (a tight sensor, a long
+gap without data, a maneuver). All weights then become exactly zero and the
+measurement is lost, even though the *ratios* between the likelihoods are
+perfectly well defined. Shifting by the largest log-weight before exponentiating
+keeps those ratios.
+
+Only differences between the entries of `loglik` matter, so a constant common to
+all samples (such as the Gaussian normalization when every sample shares the same
+`R`) can be left out.
+
+Returns `true` if `weights` was updated. If no sample has a finite log-weight
+(all prior weights zero, or every log-likelihood is `-Inf`/`NaN`), `weights` is
+left untouched and `false` is returned so the caller can decide what to do.
+"""
+function reweight_log!(weights::AbstractVector{T}, loglik::AbstractVector) where {T}
+    @assert length(weights) == length(loglik)
+    logw = Vector{float(T)}(undef, length(weights))
+    @inbounds for i in eachindex(weights, loglik)
+        lw = log(weights[i]) + loglik[i]
+        logw[i] = isnan(lw) ? -Inf : lw
+    end
+
+    m = maximum(logw)
+    isfinite(m) || return false
+
+    @inbounds for i in eachindex(weights)
+        weights[i] = exp(logw[i] - m)
+    end
+    weights ./= sum(weights)
+    return true
+end

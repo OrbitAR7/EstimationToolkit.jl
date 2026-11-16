@@ -1,6 +1,6 @@
 # Figures for examples/orbit_maneuver_imm.jl.
 # Needs Plots.jl in the active environment (it is not a package dependency):
-#   julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.develop(path="."); Pkg.add("Plots")' \
+#   julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.develop(path="."); Pkg.add(["Plots", "StaticArrays"])' \
 #         -L examples/plot_orbit_maneuver.jl
 
 using Plots

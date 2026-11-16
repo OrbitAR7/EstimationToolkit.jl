@@ -164,43 +164,32 @@ function update!(
     y::AbstractVector
 ) where {T<:Real, N}
     M = length(gsf.components)
-    likelihoods = zeros(T, M)
-    
-    # Update each component and compute likelihood
+    loglik = zeros(T, M)
+
+    # Update each component and compute its log-likelihood
     for (i, component) in enumerate(gsf.components)
         # Perform EKF update
         update!(component, model, y)
-        
-        # Compute likelihood: p(y | component i)
-        ν = component.last_innovation
-        S = component.last_innovation_cov
-        
-        # Gaussian likelihood: 𝒩(y; ŷ, S) = exp(-0.5 * ν'S⁻¹ν) / √((2π)ⁿ|S|)
-        n_y = length(y)
-        
-        # Mahalanobis distance
-        d = ν' * (S \ ν)
-        
-        # Log-likelihood for numerical stability
-        log_likelihood = -0.5 * (d + n_y * log(2π) + log(det(S)))
-        likelihoods[i] = exp(log_likelihood)
+
+        # Innovation and its covariance, evaluated at the component's prior
+        ν = innovation(component)
+        S = innovation_covariance(component)
+
+        # log 𝒩(y; ŷ, S) = -0.5 (ν'S⁻¹ν + n log 2π + log|S|).
+        # S differs between components, so the log|S| term must be kept.
+        loglik[i] = -0.5 * (dot(ν, S \ ν) + length(y) * log(2π) + logdet(S))
     end
-    
-    # Update weights: w_new = w_old * likelihood
-    new_weights = gsf.weights .* likelihoods
-    
-    # Normalize
-    weight_sum = sum(new_weights)
-    if weight_sum > eps(T)
-        gsf.weights .= new_weights ./ weight_sum
-    else
-        # If all likelihoods are near zero, keep old weights
-        @warn "All component likelihoods near zero, keeping old weights"
+
+    # Update weights, w_new ∝ w_old * likelihood, in log space. With tight
+    # measurements every component's likelihood can underflow to zero while their
+    # ratios are still well defined.
+    if !reweight_log!(gsf.weights, loglik)
+        @warn "No component has a finite likelihood, keeping old weights"
     end
-    
+
     # Store mixture-level diagnostics (weighted average)
-    gsf.last_innovation = sum(w * comp.last_innovation for (w, comp) in zip(gsf.weights, gsf.components))
-    gsf.last_innovation_cov = sum(w * comp.last_innovation_cov for (w, comp) in zip(gsf.weights, gsf.components))
+    gsf.last_innovation = Vector{T}(sum(w * innovation(comp) for (w, comp) in zip(gsf.weights, gsf.components)))
+    gsf.last_innovation_cov = Matrix{T}(sum(w * innovation_covariance(comp) for (w, comp) in zip(gsf.weights, gsf.components)))
     
     # Prune low-weight components
     prune_components!(gsf)

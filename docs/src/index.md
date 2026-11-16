@@ -8,7 +8,7 @@ Documentation for **EstimationToolkit.jl**, a Julia package of state estimation 
 
 ## Overview
 
-The package has 36 filters (34 stable, 2 experimental) and 2 smoothers: Kalman-family, extended, sigma-point, ensemble, Gaussian-mixture, particle, particle-flow, multiple-model and grid-based. It's a research and teaching codebase (v0.9). Small states use StaticArrays, and model dimensions are type parameters, so mismatched models fail early.
+The package has 37 filters (35 stable, 2 experimental) and 2 smoothers: Kalman-family, extended, sigma-point, ensemble, Gaussian-mixture, particle, particle-flow, multiple-model and grid-based. It's a research and teaching codebase (v0.9). Small states use StaticArrays, and model dimensions are type parameters, so mismatched models fail early.
 
 ## Quick Links
 

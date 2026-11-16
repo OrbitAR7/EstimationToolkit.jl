@@ -58,22 +58,29 @@ Return the measurement noise covariance matrix R.
 function measurement_noise_cov end
 
 """
-    likelihood(model::AbstractMeasurementModel, y, x)
+    log_likelihood(model::AbstractMeasurementModel, y, x)
 
-Compute the measurement likelihood p(y|x) for a given state.
+Log of the measurement likelihood, log p(y|x), for a given state.
 
-Default implementation assumes Gaussian measurement noise.
+Default implementation assumes additive Gaussian measurement noise. Add a method
+for your model type to use a different noise distribution. Particle filters weight
+with this rather than with `likelihood`, so that a measurement far out in the tail
+of every particle still reweights them instead of underflowing to zero.
 """
-function likelihood(model::AbstractMeasurementModel, y, x)
+function log_likelihood(model::AbstractMeasurementModel, y, x)
     y_pred = measure(model, x)
     R = measurement_noise_cov(model)
     ν = y - y_pred
-    
-    # Gaussian likelihood: (2π)^(-n/2) |R|^(-1/2) exp(-0.5 ν'R⁻¹ν)
+
+    # Gaussian: log p = -0.5 (n log 2π + log|R| + ν'R⁻¹ν)
     n = length(y)
-    log_det = logdet(R)
-    exponent = -0.5 * dot(ν, R \ ν)
-    log_likelihood = -0.5 * (n * log(2π) + log_det) + exponent
-    
-    return exp(log_likelihood)
+    return -0.5 * (n * log(2π) + logdet(R) + dot(ν, R \ ν))
 end
+
+"""
+    likelihood(model::AbstractMeasurementModel, y, x)
+
+Measurement likelihood p(y|x) for a given state, `exp(log_likelihood(model, y, x))`.
+This underflows to zero for large residuals; use `log_likelihood` for weighting.
+"""
+likelihood(model::AbstractMeasurementModel, y, x) = exp(log_likelihood(model, y, x))

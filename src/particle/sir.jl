@@ -162,30 +162,18 @@ function update_weights!(sir::SequentialImportanceResampling{T, N},
                         model_dyn::AbstractDynamicsModel,
                         model_meas::AbstractMeasurementModel,
                         u, y, dt) where {T, N}
-    # Compute likelihood for each particle
-    for i in eachindex(sir.particles)
-        # Predicted measurement
-        ŷ = measure(model_meas, sir.particles[i])
-        
-        # Compute likelihood: p(y | x^(i))
-        # Assuming Gaussian measurement noise: p(y | x) = N(y; h(x), R)
-        R = measurement_noise_cov(model_meas)
-        residual = y - ŷ
-        
-        # Multivariate Gaussian likelihood (unnormalized is sufficient)
-        exponent = -0.5 * (residual' * (R \ residual))
-        likelihood = exp(exponent)
-        
-        # Update weight (for bootstrap, this is just the likelihood)
-        sir.weights[i] *= likelihood
+    # Log-likelihood of each particle: p(y | x^(i)) = N(y; h(x^(i)), R).
+    # The normalization constant is the same for every particle, so it is dropped.
+    R = measurement_noise_cov(model_meas)
+    loglik = map(sir.particles) do x
+        residual = y - measure(model_meas, x)
+        -0.5 * (residual' * (R \ residual))
     end
-    
-    # Normalize weights
-    w_sum = sum(sir.weights)
-    if w_sum > 0
-        sir.weights ./= w_sum
-    else
-        # All weights zero - reset to uniform (degenerate case)
+
+    # For the bootstrap proposal the weight update is just the likelihood.
+    # Done in log space so that large residuals do not underflow.
+    if !reweight_log!(sir.weights, loglik)
+        # No finite weight - reset to uniform (degenerate case)
         sir.weights .= 1.0 / length(sir.weights)
     end
     

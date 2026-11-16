@@ -291,7 +291,8 @@ function step!(
     
     # Propose new particles using EKF
     new_particles = Vector{SVector{N, T}}(undef, ekpf.N_particles)
-    
+    loglik = Vector{T}(undef, ekpf.N_particles)
+
     for i in 1:ekpf.N_particles
         new_particles[i] = ekf_proposal(
             ekpf.particles[i], u, y, model_dyn, model_meas, dt, ekpf.rng
@@ -303,15 +304,11 @@ function step!(
         ŷ = measure(model_meas, new_particles[i])
         R = measurement_noise_cov(model_meas)
         innov = y - ŷ
-        log_like = -0.5 * dot(innov, R \ innov)
-        ekpf.weights[i] *= exp(log_like)
+        loglik[i] = -0.5 * dot(innov, R \ innov)
     end
-    
-    # Normalize weights
-    total_weight = sum(ekpf.weights)
-    if total_weight > eps(T)
-        ekpf.weights ./= total_weight
-    else
+
+    # Update and normalize weights in log space
+    if !reweight_log!(ekpf.weights, loglik)
         ekpf.weights .= T(1.0) / ekpf.N_particles
     end
     

@@ -12,18 +12,12 @@ Check if matrix P is symmetric positive definite.
 Returns `true` if P is SPD, `false` otherwise.
 """
 function is_positive_definite(P::AbstractMatrix; tol=1e-10)
-    # First check if it's positive definite using Cholesky
-    # This is fast and usually sufficient
-    try
-        cholesky(Symmetric(P))
-        return true
-    catch
-        return false
-    end
-    
-    # Fallback: check eigenvalues (more expensive)
-    # eigvals_all = eigvals(Symmetric(P))
-    # return all(λ -> λ > tol, eigvals_all)
+    # Cholesky test on a dense copy. The copy matters for static matrices:
+    # StaticArrays' Cholesky does not flag a zero pivot, so a singular
+    # (semidefinite) SMatrix such as [1 0; 0 0] would pass as positive definite
+    # and then fail later in a LAPACK factorization.
+    all(isfinite, P) || return false
+    return isposdef(Symmetric(Matrix(P)))
 end
 
 """
