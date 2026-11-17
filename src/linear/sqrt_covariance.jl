@@ -86,39 +86,31 @@ end
 Square-root covariance filter prediction step.
 
 # Algorithm
-1. Propagate state: x̄ = f(x, u, dt)
-2. Compute Jacobians: F = ∂f/∂x, G = ∂f/∂v
-3. Form augmented matrix: M = [S·F' ; √Q·G']
-4. QR factorization: M = [S̄']·R where S̄ is the new square-root factor
+1. Linearize at the current estimate: F = ∂f/∂x; Q = process_noise_cov(model, x, dt)
+2. Propagate state: x̄ = f(x, u, dt)
+3. Form the stacked matrix M = [S'·F' ; S_Q'], with S_Q·S_Q' = Q, so M'·M = F·P·F' + Q
+4. QR factorization M = Q·R; the new square-root factor is S̄ = R'
 """
 function predict!(filter::SquareRootCovarianceFilter{T,N}, model::AbstractDynamicsModel, u, dt) where {T,N}
+    # Linearize and evaluate the process noise at the estimate before propagation
+    F = jacobian_x(model, filter.x, u, dt)
+    Q = process_noise_cov(model, filter.x, dt)
+
     # Propagate state mean
     filter.x = propagate(model, filter.x, u, dt)
-    
-    # Get linearized dynamics
-    F = jacobian_x(model, filter.x, u, dt)
-    Q = process_noise_cov(model, dt)
-    
-    # For square-root filter, we need sqrt(Q)
+
+    # Square root of Q (psd_sqrt also handles a singular Q, e.g. noise that
+    # enters only through the accelerations)
     Q_sym = make_symmetric(Q)
-    Q_spd = ensure_spd(Q_sym)
-    S_Q = SMatrix{N,N,T}(cholesky(Symmetric(Matrix(Q_spd))).L)
-    
-    # Form augmented matrix for QR factorization
-    # M = [S*F' ; S_Q]'  (transposed for QR)
-    # After QR: M' = Q*R, where R' is the new S̄
-    M_top = filter.S * F'
-    M = vcat(M_top, S_Q)
-    
-    # QR factorization: M = Q*R
-    # We want the upper triangular R such that M'*M = R'*R
-    # which means P̄ = M*M' = (Q*R)*(Q*R)' = R*R'
-    qr_result = qr(Matrix(M))
-    R = qr_result.R
-    
-    # Extract upper triangular part and transpose to get lower triangular S̄
-    # Since P̄ = R'*R, we need S̄ such that P̄ = S̄*S̄'
-    # Taking S̄ = R' gives us the Cholesky factor
+    S_Q = SMatrix{N,N,T}(psd_sqrt(Q_sym))
+
+    # Stack the transposed factors: M = [S'·F' ; S_Q'], so that
+    # M'·M = F·S·S'·F' + S_Q·S_Q' = F·P·F' + Q = P̄
+    M = vcat(filter.S' * F', S_Q')
+
+    # QR factorization M = Q·R gives M'·M = R'·R, so S̄ = R' is a square-root
+    # factor of P̄ (lower triangular; the signs of its columns do not matter)
+    R = qr(Matrix(M)).R
     filter.S = SMatrix{N,N,T}(LowerTriangular(R'))
     
     # Reset innovation statistics
@@ -169,19 +161,19 @@ function update!(filter::SquareRootCovarianceFilter{T,N}, model::AbstractMeasure
     # State update
     filter.x = filter.x + K_static * filter.ν
     
-    # Covariance update using Potter's square-root algorithm
-    # Form the matrix for QR factorization
-    # Updated covariance: P = (I - K*H)*P̄*(I - K*H)' + K*R*K' (Joseph form)
-    # For square-root: Form [S̄*(I-K*H)' ; K*√R]' and do QR
-    
+    # Covariance update in square-root form of the Joseph update
+    #   P = (I - K·H)·P̄·(I - K·H)' + K·R·K'
+    # Stack the transposed factors: M = [S̄'·(I - K·H)' ; S_R'·K'] ((N + NY) × N),
+    # so that M'·M = P, then take the triangular factor from a QR.
+
     I_KH = SMatrix{N,N,T}(I) - K_static * H
     R_sym = make_symmetric(R)
     R_spd = ensure_spd(R_sym)
     S_R = SMatrix{NY,NY,T}(cholesky(Symmetric(Matrix(R_spd))).L)
-    
+
     # Form augmented matrix
-    M_top = filter.S * I_KH'
-    M_bottom = K_static * S_R
+    M_top = filter.S' * I_KH'
+    M_bottom = S_R' * K_static'
     M = vcat(M_top, M_bottom)
     
     # QR factorization

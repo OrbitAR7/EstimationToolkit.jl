@@ -151,7 +151,7 @@ function predict!(qkf::QuadratureKalmanFilter{T,N}, model::AbstractDynamicsModel
                  for i in eachindex(weights))
     
     # Add process noise
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, qkf.x, dt)
     P_pred = P_pred + Q
     
     # Ensure symmetry and positive definiteness

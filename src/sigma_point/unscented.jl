@@ -63,7 +63,11 @@ Algorithm:
 1. Generate sigma points from current state
 2. Propagate each sigma point through dynamics
 3. Reconstruct predicted mean and covariance
-4. Add process noise
+4. Add process noise Q = process_noise_cov(model, x, dt)
+
+Q is evaluated once, at the estimate before propagation (not averaged over the
+sigma points), so a model may make it depend on the state; see
+[`process_noise_cov`](@ref).
 """
 function predict!(ukf::UnscentedKalmanFilter{T, N}, model::AbstractDynamicsModel,
                   u, dt) where {T, N}
@@ -77,8 +81,8 @@ function predict!(ukf::UnscentedKalmanFilter{T, N}, model::AbstractDynamicsModel
     # Reconstruct mean and covariance
     x̄, P̄ = reconstruct_gaussian(χ_pred, sigma.weights_mean, sigma.weights_cov)
     
-    # Add process noise
-    Q = process_noise_cov(model, dt)
+    # Add process noise, evaluated at the estimate before propagation
+    Q = process_noise_cov(model, ukf.x, dt)
     P̄ = P̄ + Q
     P̄ = make_symmetric(P̄)
     

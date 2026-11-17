@@ -131,7 +131,7 @@ function predict!(soekf::SecondOrderExtendedKalmanFilter{T,N}, model::AbstractDy
     
     # Compute Jacobian (first-order)
     F = jacobian_x(model, soekf.x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, soekf.x, dt)
     
     # First-order covariance prediction
     P_pred_first = F * soekf.P * F' + Q

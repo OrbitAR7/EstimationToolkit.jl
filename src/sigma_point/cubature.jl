@@ -95,7 +95,7 @@ function predict!(ckf::CubatureKalmanFilter{T, N}, model::AbstractDynamicsModel,
                                      sigma_points.weights_cov)
     
     # Add process noise
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, ckf.x, dt)
     P̄ = P̄_xx + Q
     P̄ = make_symmetric(P̄)
     

@@ -48,12 +48,12 @@ Propagates state and covariance forward in time:
 - x̄ = F x + G u
 - P̄ = F P F' + Q
 
-where F = jacobian_x(model, x, u, dt) and Q = process_noise_cov(model, dt)
+where F = jacobian_x(model, x, u, dt) and Q = process_noise_cov(model, x, dt)
 """
 function predict!(kf::KalmanFilter{T, N}, model::AbstractDynamicsModel, u, dt) where {T, N}
     # Get linearized dynamics
     F = jacobian_x(model, kf.x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, kf.x, dt)
     
     # State propagation
     x̄ = propagate(model, kf.x, u, dt)

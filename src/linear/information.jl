@@ -81,7 +81,7 @@ function predict!(inf::InformationFilter{T, N}, model::AbstractDynamicsModel, u,
     
     # Get linearized dynamics
     F = jacobian_x(model, x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, x, dt)
     
     # Propagate state (nonlinear dynamics)
     x̄ = propagate(model, x, u, dt)

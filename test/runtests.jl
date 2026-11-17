@@ -632,5 +632,7 @@ include("test_flow_ensemble.jl")
 include("test_log_weights.jl")
 include("test_adaptive_mixture.jl")
 include("test_nonsquare_measurements.jl")
+include("test_state_dependent_noise.jl")
+include("test_monte_carlo_consistency.jl")
 
 println("\n✓ All tests passed!")

@@ -53,13 +53,16 @@ EKF prediction step with first-order linearization.
 Propagates state using the full nonlinear model, but propagates covariance
 using linearization:
 - x̄ = f(x, u)
-- P̄ = F P F' + Q, where F = ∂f/∂x |_x
+- P̄ = F P F' + Q, where F = ∂f/∂x |_x and Q = process_noise_cov(model, x, dt)
+
+Q is evaluated at the estimate before propagation (the same point as F), so a
+model may make it depend on the state; see [`process_noise_cov`](@ref).
 """
 function predict!(ekf::ExtendedKalmanFilter{T, N}, model::AbstractDynamicsModel, 
                   u, dt) where {T, N}
     # Linearize dynamics about current estimate
     F = jacobian_x(model, ekf.x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, ekf.x, dt)
     
     # State propagation using full nonlinear model
     x̄ = propagate(model, ekf.x, u, dt)

@@ -103,7 +103,7 @@ propagations, plus the process noise.
 """
 function predict!(ddf::DividedDifferenceFilter{T,N}, model::AbstractDynamicsModel, u, dt) where {T,N}
     x̄, S1, S2, _ = _dd2_transform(x -> propagate(model, x, u, dt), ddf.x, ddf.P, ddf.h)
-    P̄ = S1 * S1' + S2 * S2' + Matrix(process_noise_cov(model, dt))
+    P̄ = S1 * S1' + S2 * S2' + Matrix(process_noise_cov(model, ddf.x, dt))
     ddf.x = SVector{N,T}(x̄)
     ddf.P = ensure_spd(make_symmetric(SMatrix{N,N,T}(P̄)))
     ddf.ν = nothing

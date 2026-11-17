@@ -102,7 +102,7 @@ function predict!(srif::SquareRootInformationFilter{T, N}, model::AbstractDynami
     
     # Get linearized dynamics
     F = jacobian_x(model, x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, x, dt)
     
     # Propagate state (nonlinear dynamics)
     x̄ = propagate(model, x, u, dt)

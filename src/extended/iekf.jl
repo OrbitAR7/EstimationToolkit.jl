@@ -89,7 +89,7 @@ function predict!(iekf::IteratedExtendedKalmanFilter{T, N}, model::AbstractDynam
                   u, dt) where {T, N}
     # Linearize dynamics about current estimate
     F = jacobian_x(model, iekf.x, u, dt)
-    Q = process_noise_cov(model, dt)
+    Q = process_noise_cov(model, iekf.x, dt)
     
     # State propagation using full nonlinear model
     x̄ = propagate(model, iekf.x, u, dt)

@@ -99,7 +99,7 @@ function predict!(
     F_static = SMatrix{N,N,T}(F)
     
     # Process noise
-    Q = process_noise_cov(model_dyn, dt)
+    Q = process_noise_cov(model_dyn, fmf.x, dt)
     Q_static = SMatrix{N,N,T}(Q)
     
     # Fading memory covariance propagation

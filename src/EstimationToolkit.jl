@@ -115,7 +115,7 @@ export simulate_trajectory, simulate_measurements
 
 # Export diagnostics
 export normalized_innovation_squared, normalized_estimation_error_squared
-export consistency_test
+export consistency_test, monte_carlo_consistency, chisq_mean_bounds
 
 # Export utilities
 export is_positive_definite, make_symmetric, ensure_spd, psd_sqrt
